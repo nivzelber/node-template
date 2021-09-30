@@ -1,0 +1,49 @@
+{
+  "name": "asd",
+  "version": "1.0.0",
+  "description": "<description>",
+  "main": "src/index.ts",
+  "scripts": {
+    "pre-commit": "lint-staged && tsc --noEmit",
+    "pre-push": "npm test",
+    "prepare": "husky install",
+    "build": "tsc --project tsconfig.production.json",
+    "dev": "cross-env NODE_ENV=development node dist/index.js",
+    "dev:once": "npm run build && npm run dev",
+    "dev:watch": "nodemon",
+    "start": "node dist/index.js",
+    "lint": "eslint src/**/*.ts config/*.json --fix --cache",
+    "test": "cross-env NODE_ENV=test jest",
+    "test:watch": "npm test -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "<repository-url>"
+  },
+  "author": "<author>",
+  "license": "ISC",
+  "dependencies": {
+    "@types/config": "0.0.39",
+    "@types/jest": "^27.0.2",
+    "@types/node": "^16.10.1",
+    "@types/winston": "^2.4.4",
+    "config": "^3.3.6",
+    "typescript": "^4.4.3",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.2",
+    "jest": "^27.2.3",
+    "lint-staged": "^11.1.2",
+    "nodemon": "^2.0.13",
+    "prettier": "^2.4.1",
+    "ts-jest": "^27.0.5"
+  }
+}

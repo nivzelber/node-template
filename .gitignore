@@ -1,0 +1,19 @@
+# npm
+node_modules
+
+# editors
+.vscode
+.idea
+
+# logs
+*.log*
+
+# compiled
+dist
+
+# local files
+config.local.json
+
+# cache
+.eslintcache
+tsconfig.tsbuildinfo
