@@ -11,15 +11,11 @@ try {
 } catch {
   logger.error("Mongo Not Connected");
 }
-//     //await createListing(client, { name: "Ariel", lastName: "Miz", date: "24/02/1999" });
-//     //await findListingByName(client, "Ariel");
-//     //await findMultListing(client, { date: "24/02/1999" });
-// await updateListingByName('old name' , 'new name');
-//     //await deleteOneListing(client, "Ori");
 
 export async function createListing(newListing) {
   const result = await client.db("RestManagerDB").collection("users").insertOne(newListing);
-  console.log(`new listing created with following id : ${result.insertedId}`);
+  logger.info(`new listing created with following id : ${result.insertedId}`);
+  return result;
 }
 
 export async function findMultListing(prop) {
@@ -27,13 +23,14 @@ export async function findMultListing(prop) {
   const cursor = await client.db("RestManagerDB").collection("users").find({ date: prop });
   const result = await cursor.toArray();
   if (result) {
-    console.log(`Found listing with the date mention : ${prop}`);
+    logger.info(`Found listing with the date mention : ${prop}`);
     result.forEach(result => {
-      console.log(result);
+      logger.info(result);
     });
   } else {
-    console.log(`NOT! Found listing with the date mention : ${prop}`);
+    logger.info(`NOT! Found listing with the date mention : ${prop}`);
   }
+  return result;
 }
 
 export async function findListingByName(nameOfListing) {
@@ -42,11 +39,12 @@ export async function findListingByName(nameOfListing) {
     name: nameOfListing
   });
   if (result) {
-    console.log(`Found a listing in the collection with the name : ${nameOfListing}`);
-    console.log(result);
+    logger.info(`Found a listing in the collection with the name : ${nameOfListing}`);
+    logger.info(result);
   } else {
-    console.log(`Not found listing with the name : ${nameOfListing}`);
+    logger.info(`Not found listing with the name : ${nameOfListing}`);
   }
+  return result;
 }
 
 export async function updateListingByName(nameOfListing, value) {
@@ -54,8 +52,9 @@ export async function updateListingByName(nameOfListing, value) {
     .db("RestManagerDB")
     .collection("users")
     .updateOne({ name: nameOfListing }, { $set: { name: value } });
-  console.log(`${result.matchedCount} document(s) matched the query criteria`);
-  console.log(`${result.modifiedCount} documents was/were updated`);
+  logger.info(`${result.matchedCount} document(s) matched the query criteria`);
+  logger.info(`${result.modifiedCount} documents was/were updated`);
+  return result;
 }
 
 export async function deleteOneListing(nameOfListing) {
@@ -64,7 +63,8 @@ export async function deleteOneListing(nameOfListing) {
     .collection("users")
     .deleteOne({ name: nameOfListing });
 
-  console.log(`${result.deletedCount} document(s) was/were deleted`);
+  logger.info(`${result.deletedCount} document(s) was/were deleted`);
+  return result;
 }
 
 export async function listDatabases() {
