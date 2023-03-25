@@ -46,6 +46,18 @@ export async function findListingByName(nameOfListing) {
   }
   return result;
 }
+export async function findListingByNumber(userNumber) {
+  // find one object by name - return whole object
+  const result = await client.db("RestManagerDB").collection("users").findOne({
+    userNumber
+  });
+  if (result) {
+    logger.info(`Found a listing in the collection with the number : ${userNumber}`);
+  } else {
+    logger.info(`Not found listing with the name : ${userNumber}`);
+  }
+  return result;
+}
 
 export async function updateListingByName(nameOfListing, value) {
   const result = await client
