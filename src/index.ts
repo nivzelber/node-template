@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
 
 import { logger } from "./logger";
 import {
@@ -7,7 +8,8 @@ import {
   deleteOneListing,
   findListingByName,
   findMultListing,
-  updateListingByName
+  updateListingByName,
+  findListingByNumber
 } from "./mongo";
 
 const app = express();
@@ -17,6 +19,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
+app.use(
+  cors({
+    origin: "*"
+  })
+);
 //first get opp is for read object by name , and second one is for read objects by date
 app.get("/get-object-by-name", async (req, res) => {
   logger.info("new Get Req");
@@ -31,6 +38,15 @@ app.get("/get-objects-by-date", async (req, res) => {
   logger.info("new Get Req");
   const response = await findMultListing(req.query.date);
   if (response.toString()) {
+    return res.status(200).json({ message: "Object(s) Read Successfully", response });
+  } else {
+    return res.status(200).json({ message: "Object(s) Was Not Found" });
+  }
+});
+app.get("/get-objects-by-number", async (req, res) => {
+  logger.info("new Get Req");
+  const response = await findListingByNumber(req.query.number);
+  if (response) {
     return res.status(200).json({ message: "Object(s) Read Successfully", response });
   } else {
     return res.status(200).json({ message: "Object(s) Was Not Found" });
@@ -65,6 +81,6 @@ app.delete("/delete", async (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(5001, () => {
   logger.info("server is up!");
 });
