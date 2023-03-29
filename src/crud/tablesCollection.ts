@@ -30,26 +30,29 @@ export async function findTableByName(owner) {
   }
   return result;
 }
-export async function findMultTables(shape) {
+export async function findMultTables(field, value) {
   // find multiplay objects by SHAPE - return whole objects
-  const cursor = await client.db("RestManagerDB").collection("tables").find({ shape });
+  const cursor = await client
+    .db("RestManagerDB")
+    .collection("tables")
+    .find({ [field]: value });
   const result = await cursor.toArray();
   if (result.length > 0) {
-    logger.info(`Found listing with the shape mention : ${shape}`);
+    logger.info(`Found listing with the ${field} mention : ${value}`);
     result.forEach(result => {
       logger.info(result);
     });
   } else {
-    logger.info(`NOT! Found listing with the shape mention : ${shape}`);
+    logger.info(`NOT! Found listing with the ${field} mention : ${value}`);
   }
   return result;
 }
 
-export async function updateTableByName(owner, value) {
+export async function updateTable(table_id, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("tables")
-    .updateOne({ owner }, { $set: { owner: value } });
+    .updateOne({ table_id }, { $set: { [field]: value } });
   logger.info(`${result.matchedCount} document(s) matched the query criteria`);
   logger.info(`${result.modifiedCount} documents was/were updated`);
   return result;
@@ -65,13 +68,11 @@ export async function updateTableById(table_id, value) {
   return result;
 }
 
-export async function deleteOneTableByName(owner) {
-  const result = await client.db("RestManagerDB").collection("tables").deleteOne({ owner });
-  logger.info(`${result.deletedCount} document(s) was/were deleted`);
-  return result;
-}
-export async function deleteOneTableById(table_id) {
-  const result = await client.db("RestManagerDB").collection("tables").deleteOne({ table_id });
+export async function deleteOneTable(field, value) {
+  const result = await client
+    .db("RestManagerDB")
+    .collection("tables")
+    .deleteOne({ [field]: value });
   logger.info(`${result.deletedCount} document(s) was/were deleted`);
   return result;
 }

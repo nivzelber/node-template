@@ -8,7 +8,23 @@ export async function createOrder(newOrder) {
   logger.info(`new listing created with following id : ${result.insertedId}`);
   return result;
 }
-
+export async function findMultOrders(field, value) {
+  // find multiplay objects by field - return whole object
+  const cursor = await client
+    .db("RestManagerDB")
+    .collection("orders")
+    .find({ [field]: value });
+  const result = await cursor.toArray();
+  if (result.length > 0) {
+    logger.info(`Found listing with the ${field} mention : ${value}`);
+    result.forEach(result => {
+      logger.info(result);
+    });
+  } else {
+    logger.info(`NOT! Found listing with the ${field} mention : ${value}`);
+  }
+  return result;
+}
 export async function findOrderByNumber(orderNumber) {
   const result = await client.db("RestManagerDB").collection("orders").findOne({
     orderNumber
@@ -32,18 +48,21 @@ export async function findOrderByName(orderOwner) {
   return result;
 }
 
-export async function updateOrderByName(orderOwner, value) {
+export async function updateOrder(orderNumber, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("orders")
-    .updateOne({ orderOwner }, { $set: { orderOwner: value } });
+    .updateOne({ orderNumber }, { $set: { [field]: value } });
   logger.info(`${result.matchedCount} document(s) matched the query criteria`);
   logger.info(`${result.modifiedCount} documents was/were updated`);
   return result;
 }
 
-export async function deleteOneOrderByName(orderOwner) {
-  const result = await client.db("RestManagerDB").collection("orders").deleteOne({ orderOwner });
+export async function deleteOneOrder(field, value) {
+  const result = await client
+    .db("RestManagerDB")
+    .collection("orders")
+    .deleteOne({ [field]: value });
   logger.info(`${result.deletedCount} document(s) was/were deleted`);
   return result;
 }

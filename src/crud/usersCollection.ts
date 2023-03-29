@@ -9,17 +9,20 @@ export async function createListing(newListing) {
   return result;
 }
 
-export async function findMultListing(prop) {
+export async function findMultUsers(field, value) {
   // find multiplay objects by date - return whole object
-  const cursor = await client.db("RestManagerDB").collection("users").find({ userType: prop });
+  const cursor = await client
+    .db("RestManagerDB")
+    .collection("users")
+    .find({ [field]: value });
   const result = await cursor.toArray();
   if (result.length > 0) {
-    logger.info(`Found listing with the userType mention : ${prop}`);
+    logger.info(`Found listing with the ${field} mention : ${value}`);
     result.forEach(result => {
       logger.info(result);
     });
   } else {
-    logger.info(`NOT! Found listing with the userType mention : ${prop}`);
+    logger.info(`NOT! Found listing with the ${field} mention : ${value}`);
   }
   return result;
 }
@@ -50,21 +53,18 @@ export async function findListingByNumber(userNumber) {
   return result;
 }
 
-export async function updateListingByName(nameOfListing, value) {
+export async function updateUser(id, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("users")
-    .updateOne({ name: nameOfListing }, { $set: { name: value } });
+    .updateOne({ userNumber: id }, { $set: { [field]: value } });
   logger.info(`${result.matchedCount} document(s) matched the query criteria`);
   logger.info(`${result.modifiedCount} documents was/were updated`);
   return result;
 }
 
-export async function deleteOneListing(nameOfListing) {
-  const result = await client
-    .db("RestManagerDB")
-    .collection("users")
-    .deleteOne({ name: nameOfListing });
+export async function deleteOneListing(userNumber) {
+  const result = await client.db("RestManagerDB").collection("users").deleteOne({ userNumber });
   logger.info(`${result.deletedCount} document(s) was/were deleted`);
   return result;
 }
