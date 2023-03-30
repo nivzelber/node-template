@@ -53,7 +53,7 @@ export async function findListingByNumber(userNumber) {
   return result;
 }
 
-export async function updateUser(id, field, value) {
+export async function mongoUpdateUser(id, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("users")

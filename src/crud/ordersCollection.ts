@@ -3,7 +3,7 @@
 import { client } from "../mongo";
 import { logger } from "../logger";
 
-export async function createOrder(newOrder) {
+export async function mongoCreateOrder(newOrder) {
   const result = await client.db("RestManagerDB").collection("orders").insertOne(newOrder);
   logger.info(`new listing created with following id : ${result.insertedId}`);
   return result;
@@ -48,7 +48,7 @@ export async function findOrderByName(orderOwner) {
   return result;
 }
 
-export async function updateOrder(orderNumber, field, value) {
+export async function mongoUpdateOrder(orderNumber, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("orders")

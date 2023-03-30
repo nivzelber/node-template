@@ -3,7 +3,7 @@
 import { client } from "../mongo";
 import { logger } from "../logger";
 
-export async function createTable(newTable) {
+export async function mongoCreateTable(newTable) {
   const result = await client.db("RestManagerDB").collection("tables").insertOne(newTable);
   logger.info(`new listing created with following id : ${result.insertedId}`);
   return result;
@@ -48,7 +48,7 @@ export async function findMultTables(field, value) {
   return result;
 }
 
-export async function updateTable(table_id, field, value) {
+export async function mongoUpdateTable(table_id, field, value) {
   const result = await client
     .db("RestManagerDB")
     .collection("tables")

@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import { randomInt } from "crypto";
 
 import express from "express";
 import bodyParser from "body-parser";
@@ -17,9 +16,9 @@ const pkgJson = JSON.parse(pkgJsonContent);
 const version = pkgJson.version;
 
 import { logger } from "./logger";
-import { createListing, deleteOneListing, findMultUsers, updateUser } from "./crud/usersCollection";
-import { createOrder, findMultOrders, updateOrder, deleteOneOrder } from "./crud/ordersCollection";
-import { createTable, findMultTables, updateTable, deleteOneTable } from "./crud/tablesCollection";
+import { getUsers, createUser, updateUser, deleteUser } from "./swaggers/usersCmds";
+import { createOrder, getOrder, updateOrder, deleteOrder } from "./swaggers/ordersCmds";
+import { createTable, updateTable, getTable, deleteTable } from "./swaggers/tablesCmds";
 
 export const app = express();
 // parse application/x-www-form-urlencoded
@@ -52,6 +51,67 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ *  /users/create:
+ *  post:
+ *    tags:
+ *    - Users
+ *    summary: Create New User
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              -name
+ *              -userNumber
+ *              -userType
+ *              -heName
+ *            properties:
+ *              name:
+ *                type: string
+ *                default: Ariel
+ *              userNumber:
+ *                type: string
+ *                default: 2402
+ *              userType:
+ *                type: string
+ *                default: Admin
+ *              heName:
+ *                type: string
+ *                default: אריאל
+ *    responses:
+ *      200:
+ *        description: Object Create Successfully
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *               name:
+ *                 type: string
+ *               userNumber:
+ *                 type: string
+ *               userType:
+ *                 type: string
+ *               heName:
+ *                 type: string
+ *      404:
+ *        description: Request Denied
+ *        content:
+ *          application/json:
+ *            schema:
+ *      500:
+ *        description: Internal Server Error
+ *        content:
+ *          application/json:
+ *            schema:
+ *    operationId: createListing
+ */
+app.post("/users/create", createUser);
 
 /**
  * @swagger
@@ -102,20 +162,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *                   type: string
  *     operationId: findMultListing
  */
-app.get("/users/get", async (req, res) => {
-  try {
-    logger.info("new Get Req");
-    const response = await findMultUsers(req.query.field, req.query.value);
-    if (response.toString()) {
-      return res.status(200).json({ message: "Object(s) Read Successfully", response });
-    } else {
-      return res.status(404).json({ message: "Object(s) Was Not Found" });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.get("/users/get", getUsers);
 
 /**
  * @swagger
@@ -185,28 +232,9 @@ app.get("/users/get", async (req, res) => {
  *                response:
  *                  type: object
  *                  description: The updated donesn't success.
- *    operationId: updateUser
+ *    operationId: mongoUpdateUser
  */
-app.put("/users/update", async (req, res) => {
-  try {
-    logger.info("new Update Req");
-    if (!req.body.userNumber || !req.body.field || !req.body.value) {
-      logger.info("Unsuccessfully Updated");
-      return res.status(404).json({ message: "Unsuccessfully Request" });
-    } else {
-      const response = await updateUser(req.body.userNumber, req.body.field, req.body.value);
-      if (response.matchedCount) {
-        logger.info(` ${req.body.userNumber}, ${req.body.name}, ${req.body.value}`);
-        return res.status(200).json({ message: "Successfully Updated", response });
-      } else {
-        return res.status(404).json({ message: "Unsuccessfully Request" });
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.put("/users/update", updateUser);
 
 /**
  * @swagger
@@ -263,22 +291,7 @@ app.put("/users/update", async (req, res) => {
  *                   description: An error message.
  */
 
-app.delete("/users/delete", async (req, res) => {
-  try {
-    logger.info("new Delete Req");
-    const response = await deleteOneListing(req.body.userNumber);
-    if (response.deletedCount) {
-      return res.status(200).json({ message: "Successfully Deleted", response });
-    } else {
-      return res
-        .status(404)
-        .json({ message: `Cannot Find Object With Specipic id ${req.body.name}:( ` });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.delete("/users/delete", deleteUser);
 
 /**
  * @swagger
@@ -351,36 +364,7 @@ app.delete("/users/delete", async (req, res) => {
  *            schema:
  *    operationId: createOrder
  */
-app.post("/orders/create", async (req, res) => {
-  try {
-    logger.info("new Post Req");
-    if (
-      !req.body.orderName ||
-      !req.body.orderNumber ||
-      !req.body.orderBody ||
-      !req.body.table_id ||
-      !req.body.status ||
-      !req.body.time
-    ) {
-      return res
-        .status(404)
-        .json({ message: "Unsuccessfully Registered :( , one of the body parameters is null" });
-    } else {
-      const response = await createOrder({
-        orderName: req.body.orderName,
-        orderNumber: req.body.orderNumber,
-        orderBody: req.body.orderBody,
-        table_id: req.body.table_id,
-        status: req.body.status,
-        time: req.body.time
-      });
-      return res.status(200).json({ message: "Order Successfully Registered", response });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.post("/orders/create", createOrder);
 
 /**
  * @swagger
@@ -431,20 +415,7 @@ app.post("/orders/create", async (req, res) => {
  *                   type: string
  *     operationId: findMultOrders
  */
-app.get("/orders/get", async (req, res) => {
-  try {
-    logger.info("new Get Req");
-    const response = await findMultOrders(req.query.field, req.query.value);
-    if (response.length > 0) {
-      return res.status(200).json({ message: "Object(s) Read Successfully", response });
-    } else {
-      return res.status(404).json({ message: "Object(s) Was Not Found" });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.get("/orders/get", getOrder);
 
 /**
  * @swagger
@@ -514,28 +485,9 @@ app.get("/orders/get", async (req, res) => {
  *                response:
  *                  type: object
  *                  description: The updated donesn't success.
- *    operationId: updateUser
+ *    operationId: updateOrder
  */
-app.put("/orders/update", async (req, res) => {
-  try {
-    logger.info("new Update Req");
-    if (!req.body.orderNumber || !req.body.field || !req.body.value) {
-      logger.info("Unsuccessfully Updated");
-      return res.status(404).json({ message: "Unsuccessfully Request" });
-    } else {
-      const response = await updateOrder(req.body.orderNumber, req.body.field, req.body.value);
-      if (response.matchedCount) {
-        logger.info(` ${req.body.orderNumber}, ${req.body.field}, ${req.body.value}`);
-        return res.status(200).json({ message: "Successfully Updated", response });
-      } else {
-        return res.status(404).json({ message: "Unsuccessfully Request" });
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.put("/orders/update", updateOrder);
 
 /**
  * @swagger
@@ -595,22 +547,7 @@ app.put("/orders/update", async (req, res) => {
  *                   type: string
  *                   description: An error message.
  */
-app.delete("/orders/delete", async (req, res) => {
-  try {
-    logger.info("new Delete Req");
-    const response = await deleteOneOrder(req.body.field, req.body.value);
-    if (response.deletedCount) {
-      return res.status(200).json({ message: "Successfully Deleted", response });
-    } else {
-      return res
-        .status(404)
-        .json({ message: "Cannot Find Object With Specipic Value :(", response });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.delete("/orders/delete", deleteOrder);
 
 /**
  * @swagger
@@ -677,28 +614,7 @@ app.delete("/orders/delete", async (req, res) => {
  *            schema:
  *    operationId: createOrder
  */
-app.post("/tables/create", async (req, res) => {
-  try {
-    logger.info("new Post Req");
-    if (!req.body.table_id || !req.body.shape || !req.body.owner) {
-      logger.info("Unsuccessfully Registered :( , one of the body parameters is null");
-      return res
-        .status(404)
-        .json({ message: "Unsuccessfully Registered :( , one of the body parameters is null" });
-    }
-    const response = await createTable({
-      table_id: req.body.table_id,
-      shape: req.body.shape,
-      owner: req.body.owner,
-      x: randomInt(0, 100).toString(),
-      y: randomInt(0, 100).toString()
-    });
-    return res.status(200).json({ message: "Successfully Registered", response });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.post("/tables/create", createTable);
 
 /**
  * @swagger
@@ -749,20 +665,7 @@ app.post("/tables/create", async (req, res) => {
  *                   type: string
  *     operationId: findMultTables
  */
-app.get("/tables/get", async (req, res) => {
-  try {
-    logger.info("new Get Req");
-    const response = await findMultTables(req.query.field, req.query.value);
-    if (response.length > 0) {
-      return res.status(200).json({ message: "Table(s) Read Successfully", response });
-    } else {
-      return res.status(404).json({ message: "Table(s) Was Not Found" });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.get("/tables/get", getTable);
 /**
  * @swagger
  * /tables/update:
@@ -833,29 +736,7 @@ app.get("/tables/get", async (req, res) => {
  *                  description: The updated donesn't success.
  *    operationId: updateTable
  */
-app.put("/tables/update", async (req, res) => {
-  try {
-    logger.info("new Update Req");
-    if (!req.body.table_id || !req.body.field || !req.body.value) {
-      logger.info("");
-      return res
-        .status(404)
-        .json({ message: "Table Unsuccessfully Updated , one of the parameters is null" });
-    }
-    const response = await updateTable(req.body.table_id, req.body.field, req.body.value);
-    if (response.matchedCount) {
-      logger.info(`${req.body.table_id}, ${req.body.field}, ${req.body.value}`);
-      return res.status(200).json({ message: "Table Successfully Updated", response });
-    } else {
-      return res
-        .status(404)
-        .json({ message: "Table Unsuccessfully Updated , one of the parameters is null" });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.put("/tables/update", updateTable);
 
 /**
  * @swagger
@@ -915,22 +796,7 @@ app.put("/tables/update", async (req, res) => {
  *                   type: string
  *                   description: An error message.
  */
-app.delete("/tables/delete", async (req, res) => {
-  try {
-    logger.info("new Delete Req");
-    const response = await deleteOneTable(req.body.field, req.body.value);
-    if (response.deletedCount) {
-      return res.status(200).json({ message: "Successfully Deleted", response });
-    } else {
-      return res
-        .status(404)
-        .json({ message: "Cannot Find Object With Specipic Value :(", response });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+app.delete("/tables/delete", deleteTable);
 
 app.listen(5001, () => {
   logger.info("server is up!");
